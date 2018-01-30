@@ -1,18 +1,10 @@
-//
-//  ViewController.swift
-//  SwiftKVO
-//
-//  Created by Ralf Ebert on 20/02/16.
-//  Copyright © 2016 Ralf Ebert. All rights reserved.
-//
-
 import UIKit
 
 class CounterModel : NSObject {
     
-    dynamic var value = 0
+    @objc dynamic var value = 0
     
-    dynamic var messages = [String]()
+    @objc dynamic var messages = [String]()
     
 }
 
@@ -29,33 +21,37 @@ class CounterViewController: UIViewController {
         startBackgroundTask()
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.observeModel = true
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.observeModel = false
     }
 
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
 
-        print("observeValueForKeyPath: \(keyPath) object: \(object)")
+        print("observeValue keyPath:\(String(describing: keyPath)) object: \(String(describing: object))")
         
-        if object === model && keyPath == "value" {
-            self.label.text = String(model.value)
-        }
-        if object === model && keyPath == "messages" {
-            self.messagesLabel.text = String(model.messages.joinWithSeparator("\n"))
+        guard let object = object else { return }
+        
+        if let model = object as? CounterModel {
+            if keyPath == "value" {
+                self.label.text = String(model.value)
+            }
+            if keyPath == "messages" {
+                self.messagesLabel.text = String(model.messages.joined(separator: "\n"))
+            }
         }
     }
     
     func startBackgroundTask() {
-        NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "changeModel", userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.changeModel), userInfo: nil, repeats: true)
     }
     
-    func changeModel() {
+    @objc func changeModel() {
         model.value += 1
         model.messages.append("Hello \(NSDate())")
     }
